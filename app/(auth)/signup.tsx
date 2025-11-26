@@ -1,6 +1,7 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useState } from 'react';
-import {authApi} from '../../utils/api.js';
+import {authApi, saveToken} from '../../utils/api.js';
+import { useRouter } from 'expo-router';
 
 export default function SignupScreenUI() {
 
@@ -8,17 +9,70 @@ export default function SignupScreenUI() {
   const [email, setEmail] = useState('')
   const  [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  // const [errors, setErrors] = useState()
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('') 
+  const router = useRouter();
 
   const handleSignUp = async () => {
+    // Clear previous messages
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    // Validation
+    if (!name.trim() || !email.trim() || !password) {
+      setErrorMessage('Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long');
+      return;
+    }
+
     try {
-      const response = await authApi.signup(name.trim(), email.trim(), password);  
-      // if(response.success) {
-      //   console.log(response);
-      // }
-      console.log(response);
+      setLoading(true);
+      const response = await authApi.signup(name.trim(), email.trim(), password);
+      console.log('Signup successful:', response);
+
+      if(response.success) {
+        // Save token to AsyncStorage
+        await saveToken(response.data.token);
+
+        // Show success message
+        setSuccessMessage(`Welcome ${response.data.user.name}! Account created successfully!`);
+
+        // Clear form
+        setName('');
+        setEmail('');
+        setPassword('');
+
+        console.log('User registered:', response.data);
+
+        // Show alert and navigate to home
+        Alert.alert(
+          'Success!',
+          `Welcome ${response.data.user.name}! Your account has been created successfully.`,
+          [{
+            text: 'Continue',
+            onPress: () => {
+              router.replace('/(main)/home');
+            }
+          }]
+        );
+      }
     } catch (error) {
-      console.error("Erron in Signup")
+      console.error("Error in Signup:", error);
+      const errorMsg = error.message || 'Signup failed. Please try again.';
+      setErrorMessage(errorMsg);
+
+      // Show error alert
+      Alert.alert(
+        'Signup Failed',
+        errorMsg,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setLoading(false);
     }
   }
   
@@ -56,6 +110,20 @@ export default function SignupScreenUI() {
             <Text className="text-lg font-semibold text-emerald-900 mb-4">
               Join the fresh side 🍏
             </Text>
+
+            {/* Success Message */}
+            {successMessage ? (
+              <View className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4">
+                <Text className="text-green-800 text-sm font-medium">{successMessage}</Text>
+              </View>
+            ) : null}
+
+            {/* Error Message */}
+            {errorMessage ? (
+              <View className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+                <Text className="text-red-800 text-sm font-medium">{errorMessage}</Text>
+              </View>
+            ) : null}
 
             <View style={styles.form} className="w-full">
               <View style={styles.inputContainer} className="mb-4">
@@ -115,14 +183,19 @@ export default function SignupScreenUI() {
                 By continuing, you agree to our Terms & Privacy Policy.
               </Text>
 
-              <TouchableOpacity 
-                style={styles.signupButton} 
+              <TouchableOpacity
+                style={styles.signupButton}
                 className="rounded-2xl py-4 items-center mt-4 bg-emerald-600 shadow"
                 onPress={handleSignUp}
+                disabled={loading}
               >
-                <Text style={styles.signupButtonText} className="text-white text-lg font-semibold">
-                  Create Account
-                </Text>
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.signupButtonText} className="text-white text-lg font-semibold">
+                    Create Account
+                  </Text>
+                )}
               </TouchableOpacity>
 
               <View className="flex-row items-center my-4">

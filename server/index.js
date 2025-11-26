@@ -1,11 +1,19 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import connectDB from "./config/dbConfig.js";
 import authRoutes from "./routes/auth.routes.js";
 dotenv.config()
 connectDB()
 
 const app = express();
+
+app.use(cors({
+    origin: '*', // Allow all origins in development
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
+  
 
 app.use(express.json());
 
