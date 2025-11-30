@@ -24,8 +24,13 @@ export default function SignupScreenUI() {
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long');
+    if (name.trim().length < 2) {
+      setErrorMessage('Name must be at least 2 characters long');
+      return;
+    }
+
+    if (password.length < 8) {
+      setErrorMessage('Password must be at least 8 characters long');
       return;
     }
 
@@ -34,24 +39,29 @@ export default function SignupScreenUI() {
       const response = await authApi.signup(name.trim(), email.trim(), password);
       console.log('Signup successful:', response);
 
-      if(response.success) {
+      // Check for both response structures (success field OR token field)
+      if(response.success || response.token) {
+        // Handle different response structures
+        const token = response.token || response.data?.token;
+        const user = response.user || response.data?.user;
+
         // Save token to AsyncStorage
-        await saveToken(response.data.token);
+        await saveToken(token);
 
         // Show success message
-        setSuccessMessage(`Welcome ${response.data.user.name}! Account created successfully!`);
+        setSuccessMessage(`Welcome ${user.name}! Account created successfully!`);
 
         // Clear form
         setName('');
         setEmail('');
         setPassword('');
 
-        console.log('User registered:', response.data);
+        console.log('User registered:', user);
 
         // Show alert and navigate to home
         Alert.alert(
           'Success!',
-          `Welcome ${response.data.user.name}! Your account has been created successfully.`,
+          `Welcome ${user.name}! Your account has been created successfully.`,
           [{
             text: 'Continue',
             onPress: () => {

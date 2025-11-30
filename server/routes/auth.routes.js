@@ -10,17 +10,20 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
+    console.log('=== SIGNUP REQUEST ===');
+    console.log('Received data:', { name, email, passwordLength: password?.length });
+
     // Validation
     if (!name || !email || !password) {
+      console.log('Validation failed: Missing fields');
       return res.status(400).json({
         success: false,
         message: "Please provide all fields (name, email, password)",
       });
     }
 
-    
-
     if (password.length < 6) {
+      console.log('Validation failed: Password too short');
       return res.status(400).json({
         success: false,
         message: "Password must be at least 6 characters long",
@@ -28,9 +31,12 @@ router.post("/signup", async (req, res) => {
     }
 
     // Check if user already exists
+    console.log('Checking if user exists with email:', email);
     const userExists = await User.findOne({ email });
+    console.log('User exists?', userExists ? 'YES' : 'NO');
 
     if (userExists) {
+      console.log('User already exists:', userExists.email);
       return res.status(400).json({
         success: false,
         message: "User already exists with this email",
@@ -38,11 +44,13 @@ router.post("/signup", async (req, res) => {
     }
 
     // Create new user
+    console.log('Creating new user...');
     const user = await User.create({
       name,
       email,
       password,
     });
+    console.log('User created successfully:', user._id);
 
     // Generate JWT token
     const token = generateToken(user._id);
@@ -60,6 +68,10 @@ router.post("/signup", async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('=== SIGNUP ERROR ===');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+
     res.status(500).json({
       success: false,
       message: "Server error during signup",

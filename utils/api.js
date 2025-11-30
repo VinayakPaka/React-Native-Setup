@@ -58,15 +58,26 @@ const apiRequest = async (endpoint,
 
         
 
+        console.log('API Request:', method, url);
+        if (body) {
+            console.log('Request Body:', body);
+        }
+
         const response = await fetch(url, config)
         const data = await response.json()
 
+        console.log('Response Status:', response.status);
+        console.log('Response Data:', data);
+
         if (!response.ok) {
-            throw new Error(data.message || `HTTP error! status: ${response.status}`);
+            // Throw error with the server's message
+            const errorMessage = data.message || data.error || `HTTP error! status: ${response.status}`;
+            throw new Error(errorMessage);
         }
 
         return data;
     } catch (error) {
+        console.error('API Error:', error.message);
         throw error;
     }
 }
