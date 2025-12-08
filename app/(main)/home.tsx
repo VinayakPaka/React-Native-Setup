@@ -81,7 +81,7 @@ const Home = () => {
             <TouchableOpacity onPress={() => setLocationPickerVisible(true)}
             >
               <Text className="text-white text-xl font-semibold">
-                📍 Changeshjc
+                📍 Change
               </Text>
             </TouchableOpacity>
           </View>
