@@ -36,7 +36,13 @@ const cartSlice = createSlice({
             } else {
                 state.items.push({...action.payload, quantity: 1})
             }
+            AsyncStorage.setItem('cart' , JSON.stringify(state.items))
         },
+
+        loadCart: (state, action) => {
+            state.items = action.payload
+        },
+
         removeFromCart: (state, action) => {
             const exisitingItem = state.items.find(item => item.id === action.payload.id)
             if (exisitingItem) {
@@ -49,5 +55,5 @@ const cartSlice = createSlice({
     }
 })
 
-export const { addToCart, removeFromCart, clearCart } = cartSlice.actions
+export const { addToCart, loadCart, removeFromCart, clearCart } = cartSlice.actions
 export default cartSlice.reducer
