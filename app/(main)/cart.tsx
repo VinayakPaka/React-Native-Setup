@@ -1,13 +1,29 @@
 import { FlatList, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
 import React from 'react'
-import { useSelector } from 'react-redux' 
+import { useDispatch, useSelector } from 'react-redux' 
+import { addToCart, clearCart, removeFromCart } from '@/store/cartSlice';
 
 const cart = () => {
 
   const cartItems = useSelector((state:any) => state.cart.items)
   // console.log(cartItems)
+  const dispatch = useDispatch();
+
+  const calculateTotal = () => {
+    return cartItems.reduce((total: number, item: any) => {
+      const rawPrice = item?.price ?? 0;
+      const price =
+        typeof rawPrice === 'number'
+          ? rawPrice
+          : parseFloat(String(rawPrice).replace(/[^\d.-]/g, '')) || 0;
+      const quantity = typeof item?.quantity === 'number' ? item.quantity : 1;
+      return total + price * quantity;
+    }, 0);
+  };
+
 
   
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="flex-1">
@@ -33,13 +49,17 @@ const cart = () => {
                 <View className="flex-1">
                   <Text className="text-base font-semibold text-gray-800">{item.name}</Text>
                   <Text className="text-sm text-gray-500">{item.category}</Text>
-                  <Text className="text-lg font-bold text-emerald-600 mt-1">{item.price}</Text>
+                  <Text className="text-lg font-bold text-emerald-600 mt-1">
+                    ₹{typeof item.price === 'number' ? item.price : item.price}
+                  </Text>
                 </View>
 
                 <View className="items-end">
                   <TouchableOpacity
-                  
-                    className="mb-2"
+                  onPress={() => {
+                    dispatch(clearCart(item.id))
+                  }}
+                    className="mb-2" 
                   >
                     <Text className="text-red-500 text-xs">Remove</Text>
                   </TouchableOpacity>
@@ -47,7 +67,9 @@ const cart = () => {
                   <View className="flex-row items-center border border-gray-300 rounded-lg">
                     <TouchableOpacity
                      
-                      className="px-3 py-1"
+                      className="px-3 py-1" onPress={() => {
+                        dispatch(removeFromCart(item))
+                      }}
                     >
                       <Text className="text-gray-700 font-bold">-</Text>
                     </TouchableOpacity>
@@ -56,7 +78,9 @@ const cart = () => {
                     
                     <TouchableOpacity
                      
-                      className="px-3 py-1"
+                      className="px-3 py-1" onPress= {() => {
+                        dispatch(addToCart(item))
+                      }}
                     >
                       <Text className="text-gray-700 font-bold">+</Text>
                     </TouchableOpacity>
@@ -71,7 +95,7 @@ const cart = () => {
         <View className="bg-white border-t border-gray-200 px-4 py-4">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-lg font-semibold text-gray-800">Total:</Text>
-            <Text className="text-2xl font-bold text-emerald-600">₹ {}</Text>
+            <Text className="text-2xl font-bold text-emerald-600">₹ {calculateTotal()}</Text>
           </View>
           
           <TouchableOpacity className="bg-emerald-600 rounded-xl py-4 items-center">

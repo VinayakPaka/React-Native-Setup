@@ -32,7 +32,7 @@ const cartSlice = createSlice({
             // if the product already exists, then only increase the quantity
 
             if (exisitingItem) {
-                exisitingItem.quantity += action.payload.quantity
+                exisitingItem.quantity += 1
             } else {
                 state.items.push({...action.payload, quantity: 1})
             }
@@ -46,7 +46,7 @@ const cartSlice = createSlice({
         removeFromCart: (state, action) => {
             const exisitingItem = state.items.find(item => item.id === action.payload.id)
             if (exisitingItem) {
-                exisitingItem.quantity -= action.payload.quantity
+                exisitingItem.quantity -= 1
             }
         },
         clearCart: (state) => {
